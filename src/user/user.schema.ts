@@ -17,9 +17,6 @@ export class User {
   @Prop({ type: [String] })
   interists: string[];
 
-  @Prop({ default: 0 })
-  Score: number;
-
   @Prop({ default: 'sositech.xyz' })
   avatar: string;
 

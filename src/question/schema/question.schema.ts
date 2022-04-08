@@ -20,11 +20,11 @@ export class Question {
   @Prop()
   content: string;
 
-  @Prop()
+  @Prop({ default: 0 })
   viewed: number;
 
   @Prop({ type: [String] })
-  voted: [string];
+  voted: string[];
 
   @Prop({ type: timestamp })
   created_at: Date;

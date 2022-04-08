@@ -74,6 +74,15 @@ export class QuestionService {
     return questions;
   }
 
+  async findById(id: string): Promise<Question> {
+    const question = await this.questionModel.findById(id);
+
+    if (!question)
+      throw new NotFoundException(`Question id ${id} not found !!!`);
+
+    return question;
+  }
+
   async getQuestionById(id: string): Promise<Question> {
     const question = await this.questionModel
       .findById(id)
@@ -91,8 +100,6 @@ export class QuestionService {
 
   async createQuestion(user: User, createQuestionDto: CreateQuestionDto) {
     // if (!createQuestionDto) throw new BadRequestException();
-
-    console.log(user);
 
     let { title, content, category } = createQuestionDto;
 
@@ -125,24 +132,57 @@ export class QuestionService {
     }
   }
 
+  async voteQuestion(user: User, id: string): Promise<Question> {
+    let question = await this.questionModel.findById(id);
+
+    if (question.voted.includes(user.username)) {
+      question.voted = question.voted.filter((ele) => ele != user.username);
+    } else question.voted.push(user.username);
+
+    await question.save();
+
+    return question;
+  }
+
   /// PATCH Method ///
 
-  // async changeQuestion(
-  //   user: User,
-  //   changeQuestionDto: CreateQuestionDto,
-  //   id: string,
-  // ): Promise<Question> {
-  //   const question = await this.questionModel.findOne({ _id: id, user });
-  //   if (!question) throw new BadRequestException();
+  async changeQuestion(
+    user: User,
+    changeQuestionDto: CreateQuestionDto,
+    id: string,
+  ): Promise<Question> {
+    const question = await this.questionModel.findOne({ _id: id, user });
+    if (!question) throw new BadRequestException();
 
-  //   let { title, content, category } = changeQuestionDto;
+    let { title, content, category } = changeQuestionDto;
 
-  //   if(!Array.isArray(category)) category = [category]
+    if (!Array.isArray(category)) category = [category];
 
-  //   question.title = title;
-  //   question.content = content;
-  //   question.category = await this.categoryService.;
+    question.title = title;
+    question.content = content;
+    question.category = await this.categoryService.getListCategoryByListID(
+      category,
+    );
 
-  //   return question;
-  // }
+    const result = await question.save();
+
+    return result;
+  }
+
+  /// DELETE Method ///
+  async deleteQuestion(
+    user: User,
+    id: string,
+  ): Promise<{ statusCode: number; message: string }> {
+    const question = await this.questionModel.findOne({ user, _id: id });
+
+    if (!question) throw new NotFoundException();
+
+    await question.remove();
+
+    return {
+      statusCode: 200,
+      message: 'Delete question successfully !!!',
+    };
+  }
 }

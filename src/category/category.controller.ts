@@ -1,7 +1,10 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CategoryService } from './category.service';
 import { Category } from './schema/category.schema';
 
+@ApiBearerAuth()
+@ApiTags('Categorys')
 @Controller('category')
 export class CategoryController {
   constructor(private categoryService: CategoryService) {}

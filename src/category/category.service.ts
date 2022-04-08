@@ -50,4 +50,12 @@ export class CategoryService {
 
     return category;
   }
+
+  async getListCategoryByListID(id: string[]): Promise<Category[]> {
+    const categories = await this.categoryModel.find().where('_id').in(id);
+
+    if (!categories) throw new NotFoundException();
+
+    return categories;
+  }
 }

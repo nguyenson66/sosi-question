@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -15,7 +16,10 @@ import { SearchQuestionDto } from './dto/search-question.dto';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { QuestionService } from './question.service';
 import { Question } from './schema/question.schema';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('Questions')
 @Controller('question')
 export class QuestionController {
   constructor(private questionService: QuestionService) {}
@@ -50,13 +54,34 @@ export class QuestionController {
     return this.questionService.createQuestion(user, createQuestionDto);
   }
 
-  // @Patch('/:id')
-  // @UseGuards(AuthGuard())
-  // changeQuestion(
-  //   @GetUser() user: User,
-  //   @Body() changeQuestionDto: CreateQuestionDto,
-  //   @Param('id') id: string,
-  // ): Promise<Question> {
-  //   return this.questionService.changeQuestion(user, changeQuestionDto, id);
-  // }
+  @Post('/vote/:id')
+  @UseGuards(AuthGuard())
+  voteQuestion(
+    @GetUser() user: User,
+    @Param('id') id: string,
+  ): Promise<Question> {
+    return this.questionService.voteQuestion(user, id);
+  }
+
+  @Patch('/:id')
+  @UseGuards(AuthGuard())
+  changeQuestion(
+    @GetUser() user: User,
+    @Body() changeQuestionDto: CreateQuestionDto,
+    @Param('id') id: string,
+  ): Promise<Question> {
+    return this.questionService.changeQuestion(user, changeQuestionDto, id);
+  }
+
+  @Delete('/:id')
+  @UseGuards(AuthGuard())
+  deleteQuestiono(
+    @GetUser() user: User,
+    @Param('id') id: string,
+  ): Promise<{
+    statusCode: number;
+    message: string;
+  }> {
+    return this.questionService.deleteQuestion(user, id);
+  }
 }
