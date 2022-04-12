@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -14,6 +15,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UserPayLoad } from 'src/share/auth/user-payload.interface';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class UserService {
@@ -36,7 +38,7 @@ export class UserService {
   async register(registerDto: RegisterDto): Promise<User> {
     try {
       const { username, email, password } = registerDto;
-      const currentDate = moment().format();
+      const currentDate = new Date(moment().format());
 
       const salt = await bcrypt.genSalt();
       const hashedPassword = await bcrypt.hash(password, salt);
@@ -80,4 +82,35 @@ export class UserService {
     }
     throw new NotFoundException();
   }
+
+  async changePassword(changePasswordDto : ChangePasswordDto):Promise<{statusCode : number, message : string}>{
+    const {username, oldPassword, newPassword} = changePasswordDto;
+
+    if(oldPassword === newPassword)
+      throw new BadRequestException('New password can not match old password');
+
+    const user = await this.userModel.findOne({
+      username,
+    })
+
+    if(user && await bcrypt.compare(oldPassword, user.password)){
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      const currentDate = new Date(moment().format());
+
+      user.password = hashedPassword;
+      user.updated_at = currentDate;
+
+      await user.save();
+
+      return {
+        statusCode : 200,
+        message : 'Change password successfully !!!'
+      }
+    }
+    else
+      throw new UnauthorizedException('Username or password wrong !!!!');
+  }
+
+
 }

@@ -10,5 +10,5 @@ export class CreateQuestionDto {
   content: string;
 
   @IsNotEmpty()
-  category: [string];
+  category: string[];
 }

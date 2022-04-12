@@ -11,6 +11,7 @@ import { User } from 'src/user/user.schema';
 import { SearchQuestionDto } from './dto/search-question.dto';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { Question, QuestionDocument } from './schema/question.schema';
+import * as moment from 'moment';
 
 @Injectable()
 export class QuestionService {
@@ -77,6 +78,10 @@ export class QuestionService {
   async findById(id: string): Promise<Question> {
     const question = await this.questionModel.findById(id);
 
+    question.viewed += 1;
+
+    await question.save();
+
     if (!question)
       throw new NotFoundException(`Question id ${id} not found !!!`);
 
@@ -88,6 +93,9 @@ export class QuestionService {
       .findById(id)
       .populate('user', 'username Score avatar')
       .populate('category', 'name');
+    
+    question.viewed += 1;
+    await question.save();
 
     if (!question) {
       throw new NotFoundException();
@@ -101,28 +109,31 @@ export class QuestionService {
   async createQuestion(user: User, createQuestionDto: CreateQuestionDto) {
     // if (!createQuestionDto) throw new BadRequestException();
 
+    console.log(createQuestionDto);
+
     let { title, content, category } = createQuestionDto;
+    const currentDate = new Date(moment().format());
 
     if (!Array.isArray(category)) {
       category = [category];
     }
 
-    let categorys = [];
-
-    for (let i = 0; i < category.length; i++) {
-      const ctg = await this.categoryService.getCategoryById(category[i]);
-      categorys.push(ctg);
-    }
+    let categorys = await this.categoryService.getListCategoryByListID(
+      category,
+    );
 
     const question = new this.questionModel({
       user,
       category: categorys,
       title,
       content,
+      created_at: currentDate,
+      updated_at: currentDate,
     });
 
     try {
       const res = await question.save();
+      res.user.password = undefined;
       return res;
       // return question;
     } catch (error) {
@@ -135,9 +146,11 @@ export class QuestionService {
   async voteQuestion(user: User, id: string): Promise<Question> {
     let question = await this.questionModel.findById(id);
 
-    if (question.voted.includes(user.username)) {
-      question.voted = question.voted.filter((ele) => ele != user.username);
-    } else question.voted.push(user.username);
+    if (!question) throw new NotFoundException();
+
+    if (question.voted.includes(user._id)) {
+      question.voted = question.voted.filter((ele) => ele.toString() != user._id.toString());
+    } else question.voted.push(user._id);
 
     await question.save();
 
