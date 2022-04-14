@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -12,6 +14,10 @@ import { SearchQuestionDto } from './dto/search-question.dto';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { Question, QuestionDocument } from './schema/question.schema';
 import * as moment from 'moment';
+import { StatusCode } from 'src/share/dto/statusCode.dto';
+import { AnswerService } from 'src/answer/answer.service';
+import { ShowAnswerDto } from 'src/answer/dto/show-answer.dto';
+import { Answer } from 'src/answer/schema/answer.schema';
 
 @Injectable()
 export class QuestionService {
@@ -19,6 +25,8 @@ export class QuestionService {
     @InjectModel(Question.name)
     private questionModel: Model<QuestionDocument>,
     private categoryService: CategoryService,
+    @Inject(forwardRef(() => AnswerService))
+    private answerService: AnswerService,
   ) {}
 
   async getAllQuestion(
@@ -26,12 +34,17 @@ export class QuestionService {
   ): Promise<Question[]> {
     let { s, category, order, by, limit, skip } = searchQuestionDto;
 
+    if (s) s = s.toLowerCase();
+
     if (category && !Array.isArray(category)) category = [category];
 
     const questions = await this.questionModel
       .find({
-        title: { $regex: '.*' + (s || '') + '.*' },
-        content: { $regex: '.*' + (s || '') + '.*' },
+        $or: [
+          { title: { $regex: '.*' + (s || '') + '.*' } },
+          { content: { $regex: '.*' + (s || '') + '.*' } },
+          { username: { $regex: '.*' + (s || '') + '.*' } },
+        ],
       })
       .populate('user', 'username Score avatar')
       .populate('category', 'name')
@@ -42,7 +55,7 @@ export class QuestionService {
       .sort([
         [by ? by : 'title', order && order.toLowerCase() === 'desc' ? -1 : 1],
       ])
-      .select('title content voted category');
+      .select('title content voted viewed category');
 
     return questions;
   }
@@ -88,18 +101,28 @@ export class QuestionService {
     return question;
   }
 
-  async getQuestionById(id: string): Promise<Question> {
+  async getQuestionById(
+    id: string,
+    showAnswerDto: ShowAnswerDto,
+  ): Promise<Question> {
     const question = await this.questionModel
       .findById(id)
       .populate('user', 'username Score avatar')
       .populate('category', 'name');
-    
-    question.viewed += 1;
-    await question.save();
 
     if (!question) {
       throw new NotFoundException();
     }
+
+    question.viewed += 1;
+    question.save();
+
+    const answers = await this.answerService.findByQuestionId(
+      id,
+      showAnswerDto,
+    );
+
+    question.answers = answers;
 
     return question;
   }
@@ -149,7 +172,9 @@ export class QuestionService {
     if (!question) throw new NotFoundException();
 
     if (question.voted.includes(user._id)) {
-      question.voted = question.voted.filter((ele) => ele.toString() != user._id.toString());
+      question.voted = question.voted.filter(
+        (ele) => ele.toString() != user._id.toString(),
+      );
     } else question.voted.push(user._id);
 
     await question.save();
@@ -192,6 +217,19 @@ export class QuestionService {
     if (!question) throw new NotFoundException();
 
     await question.remove();
+
+    return {
+      statusCode: 200,
+      message: 'Delete question successfully !!!',
+    };
+  }
+
+  async adminDeleteQuestion(id: string): Promise<StatusCode> {
+    const question = await this.questionModel.findById(id);
+
+    if (!question) throw new NotFoundException();
+
+    await this.questionModel.remove(question);
 
     return {
       statusCode: 200,

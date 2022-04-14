@@ -5,10 +5,10 @@ import { UserModule } from './user/user.module';
 import { ShareModule } from './share/share.module';
 import { QuestionModule } from './question/question.module';
 import { CategoryModule } from './category/category.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
-    AnswerModule,
     MongooseModule.forRoot(
       'mongodb://localhost:27017/sosiquestion',
       //  {
@@ -17,10 +17,12 @@ import { CategoryModule } from './category/category.module';
       //     return connection;
       //   },}
     ),
+    AnswerModule,
     UserModule,
     ShareModule,
     QuestionModule,
     CategoryModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

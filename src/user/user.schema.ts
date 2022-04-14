@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 import { timestamp } from 'rxjs';
 import {ObjectId, Document} from 'mongoose'
+import { Role } from './enum/user-role.enum';
 
 export type UserDocument = User & Document;
 
@@ -28,6 +29,9 @@ export class User {
 
   @Prop({ default: 'sositech.xyz' })
   avatar: string;
+
+  @Prop({default: [Role.Client]})
+  roles : Role[];
 
   @Prop({ type: timestamp })
   created_at: Date;

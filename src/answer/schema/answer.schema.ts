@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
+import * as mongoose from 'mongoose';
+import { ObjectId } from 'mongoose';
+import { timestamp } from 'rxjs';
 import { Question } from 'src/question/schema/question.schema';
 import { User } from 'src/user/user.schema';
 
@@ -16,8 +18,14 @@ export class Answer {
   @Prop()
   content: string;
 
-  @Prop()
-  voted: string[];
+  @Prop({ type: [mongoose.Schema.Types.ObjectId], default: [] })
+  voted: ObjectId[];
+
+  @Prop({ type: timestamp })
+  created_at: string;
+
+  @Prop({ type: timestamp })
+  updated_at: string;
 }
 
 export const AnswerSchema = SchemaFactory.createForClass(Answer);

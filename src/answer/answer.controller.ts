@@ -11,9 +11,11 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/share/auth/get-user.decotory';
+import { StatusCode } from 'src/share/dto/statusCode.dto';
 import { User } from 'src/user/user.schema';
 import { AnswerService } from './answer.service';
 import { AnswerDto } from './dto/answer.dto';
+import { ShowAnswerDto } from './dto/show-answer.dto';
 import { Answer } from './schema/answer.schema';
 
 @ApiBearerAuth()
@@ -22,13 +24,21 @@ import { Answer } from './schema/answer.schema';
 export class AnswerController {
   constructor(private answerService: AnswerService) {}
 
+  @Get('/question/:id')
+  getAnswerByQuestionId(
+    @Param('id') id: string,
+    showAnswerDto: ShowAnswerDto,
+  ): Promise<Answer[]> {
+    return this.answerService.findByQuestionId(id, showAnswerDto);
+  }
+
   @Post('/question/:id')
   @UseGuards(AuthGuard())
   addAnswer(
     @GetUser() user: User,
     @Body() answerDto: AnswerDto,
     @Param('id') id: string,
-  ): Promise<Answer> {
+  ): Promise<StatusCode> {
     return this.answerService.addAnswer(user, answerDto, id);
   }
 

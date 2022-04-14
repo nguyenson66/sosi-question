@@ -14,5 +14,6 @@ import { Answer, AnswerSchema } from './schema/answer.schema';
   ],
   controllers: [AnswerController],
   providers: [AnswerService],
+  exports: [AnswerService],
 })
 export class AnswerModule {}
