@@ -39,6 +39,7 @@ export class AnswerController {
     @Body() answerDto: AnswerDto,
     @Param('id') id: string,
   ): Promise<StatusCode> {
+    console.log(id, answerDto);
     return this.answerService.addAnswer(user, answerDto, id);
   }
 

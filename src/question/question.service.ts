@@ -34,18 +34,24 @@ export class QuestionService {
   ): Promise<Question[]> {
     let { s, category, order, by, limit, skip } = searchQuestionDto;
 
-    if (s) s = s.toLowerCase();
+    if (!s) s = '';
+    let listChar = s.split('');
+    s = listChar.join('.*');
 
     if (category && !Array.isArray(category)) category = [category];
 
-    const searchRegex = `.*${s || ''}.*`;
-
     const questions = await this.questionModel
+      // .find({
+      //   $or: [
+      //     { title: { $regex: s, $options: 'i' } },
+      //     { content: { $regex: s, $options: 'i' } },
+      //     { username: { $regex: s, $options: 'i' } },
+      //   ],
+      // })
       .find({
         $or: [
-          { title: { $regex: searchRegex, $options: 'i' } },
-          { content: { $regex: searchRegex, $options: 'i' } },
-          { username: { $regex: searchRegex, $options: 'i' } },
+          { title: { $regex: '.*' + s + '.*', $options: 'i' } },
+          { content: { $regex: '.*' + s + '.*', $options: 'i' } },
         ],
       })
       .populate('user', 'username Score avatar')
