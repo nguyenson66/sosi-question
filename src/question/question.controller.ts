@@ -17,12 +17,8 @@ import { CreateQuestionDto } from './dto/create-question.dto';
 import { QuestionService } from './question.service';
 import { Question } from './schema/question.schema';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RolesGuard } from 'src/share/auth/role.guard';
-import { Role } from 'src/user/enum/user-role.enum';
-import { Roles } from 'src/share/auth/role.decotory';
 import { ShowAnswerDto } from 'src/answer/dto/show-answer.dto';
 
-@ApiBearerAuth()
 @ApiTags('Questions')
 @Controller('question')
 export class QuestionController {
@@ -53,6 +49,7 @@ export class QuestionController {
   }
 
   @Post('/create')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard())
   createQuestion(
     @GetUser() user: User,
@@ -62,6 +59,7 @@ export class QuestionController {
   }
 
   @Post('/vote/:id')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard())
   voteQuestion(
     @GetUser() user: User,
@@ -71,6 +69,7 @@ export class QuestionController {
   }
 
   @Patch('/:id')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard())
   changeQuestion(
     @GetUser() user: User,
@@ -81,6 +80,7 @@ export class QuestionController {
   }
 
   @Delete('/:id')
+  @ApiBearerAuth()
   deleteQuestiono(
     @GetUser() user: User,
     @Param('id') id: string,

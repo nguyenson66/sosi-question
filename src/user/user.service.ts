@@ -35,6 +35,14 @@ export class UserService {
     return user;
   }
 
+  async getUserByUsername(username: string): Promise<User> {
+    const user = await this.userModel.findOne({ username });
+
+    if (!user) throw new NotFoundException();
+
+    return user;
+  }
+
   async register(registerDto: RegisterDto): Promise<User> {
     try {
       const { username, email, password } = registerDto;
@@ -74,7 +82,7 @@ export class UserService {
     });
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      const payload: UserPayLoad = { id: user.id };
+      const payload: UserPayLoad = { username: user.username };
 
       const accessToken = await this.jwtService.sign(payload);
 
@@ -83,17 +91,19 @@ export class UserService {
     throw new NotFoundException();
   }
 
-  async changePassword(changePasswordDto : ChangePasswordDto):Promise<{statusCode : number, message : string}>{
-    const {username, oldPassword, newPassword} = changePasswordDto;
+  async changePassword(
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ statusCode: number; message: string }> {
+    const { username, oldPassword, newPassword } = changePasswordDto;
 
-    if(oldPassword === newPassword)
+    if (oldPassword === newPassword)
       throw new BadRequestException('New password can not match old password');
 
     const user = await this.userModel.findOne({
       username,
-    })
+    });
 
-    if(user && await bcrypt.compare(oldPassword, user.password)){
+    if (user && (await bcrypt.compare(oldPassword, user.password))) {
       const salt = await bcrypt.genSalt();
       const hashedPassword = await bcrypt.hash(newPassword, salt);
       const currentDate = new Date(moment().format());
@@ -104,12 +114,9 @@ export class UserService {
       await user.save();
 
       return {
-        statusCode : 200,
-        message : 'Change password successfully !!!'
-      }
-    }
-    else
-      throw new UnauthorizedException('Username or password wrong !!!!');
+        statusCode: 200,
+        message: 'Change password successfully !!!',
+      };
+    } else throw new UnauthorizedException('Username or password wrong !!!!');
   }
-
 }

@@ -6,7 +6,6 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UserService } from './user.service';
 
-@ApiBearerAuth()
 @ApiTags('User')
 @Controller('user')
 export class UserController {
@@ -23,7 +22,9 @@ export class UserController {
   }
 
   @Post('/change-password')
-  changePassword(@Body() changePasswordDto: ChangePasswordDto): Promise<{statusCode : number, message: string}> {
+  changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<{ statusCode: number; message: string }> {
     return this.userService.changePassword(changePasswordDto);
   }
 }

@@ -38,12 +38,14 @@ export class QuestionService {
 
     if (category && !Array.isArray(category)) category = [category];
 
+    const searchRegex = `.*${s || ''}.*`;
+
     const questions = await this.questionModel
       .find({
         $or: [
-          { title: { $regex: '.*' + (s || '') + '.*' } },
-          { content: { $regex: '.*' + (s || '') + '.*' } },
-          { username: { $regex: '.*' + (s || '') + '.*' } },
+          { title: { $regex: searchRegex, $options: 'i' } },
+          { content: { $regex: searchRegex, $options: 'i' } },
+          { username: { $regex: searchRegex, $options: 'i' } },
         ],
       })
       .populate('user', 'username Score avatar')
@@ -67,11 +69,12 @@ export class QuestionService {
     let { s, category, order, by, limit, skip } = searchQuestionDto;
 
     if (category && !Array.isArray(category)) category = [category];
+    const searchRegex = `.*${s || ''}.*`;
 
     const questions = await this.questionModel
       .find({
-        title: { $regex: '.*' + (s || '') + '.*' },
-        content: { $regex: '.*' + (s || '') + '.*' },
+        title: { $regex: searchRegex, $options: 'i' },
+        content: { $regex: searchRegex, $options: 'i' },
         user,
       })
       .populate('user', 'username Score avatar')
