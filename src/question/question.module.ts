@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AnswerModule } from 'src/answer/answer.module';
 import { CategoryModule } from 'src/category/category.module';
 import { ShareModule } from 'src/share/share.module';
+import { UserModule } from 'src/user/user.module';
 import { QuestionController } from './question.controller';
 import { QuestionService } from './question.service';
 import { Question, QuestionSchema } from './schema/question.schema';
@@ -14,6 +15,7 @@ import { Question, QuestionSchema } from './schema/question.schema';
     ]),
     CategoryModule,
     ShareModule,
+    UserModule,
     forwardRef(() => AnswerModule),
   ],
   controllers: [QuestionController],

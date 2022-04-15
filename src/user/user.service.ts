@@ -16,6 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { UserPayLoad } from 'src/share/auth/user-payload.interface';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ObjectId } from 'mongoose';
 
 @Injectable()
 export class UserService {
@@ -38,7 +39,7 @@ export class UserService {
   async getUserByUsername(username: string): Promise<User> {
     const user = await this.userModel.findOne({ username });
 
-    if (!user) throw new NotFoundException();
+    if (!user) throw new UnauthorizedException();
 
     return user;
   }
@@ -118,5 +119,17 @@ export class UserService {
         message: 'Change password successfully !!!',
       };
     } else throw new UnauthorizedException('Username or password wrong !!!!');
+  }
+
+  async addInterist(user: User, interists: ObjectId[]) {
+    const sUser = await this.userModel.findOne(user);
+
+    sUser.interists = interists;
+
+    if (sUser.interists.length > 10) {
+      sUser.interists = sUser.interists.slice(0, 10);
+    }
+
+    await sUser.save();
   }
 }

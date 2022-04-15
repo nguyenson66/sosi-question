@@ -18,6 +18,7 @@ import { QuestionService } from './question.service';
 import { Question } from './schema/question.schema';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ShowAnswerDto } from 'src/answer/dto/show-answer.dto';
+import { IsOptional } from 'class-validator';
 
 @ApiTags('Questions')
 @Controller('question')
@@ -25,10 +26,12 @@ export class QuestionController {
   constructor(private questionService: QuestionService) {}
 
   @Get()
+  @UseGuards(AuthGuard())
   getAllQuestion(
     @Query() searchQuestionDto: SearchQuestionDto,
+    @GetUser() user: User,
   ): Promise<Question[]> {
-    return this.questionService.getAllQuestion(searchQuestionDto);
+    return this.questionService.getAllQuestion(user, searchQuestionDto);
   }
 
   @Get('/my-question')
@@ -41,11 +44,13 @@ export class QuestionController {
   }
 
   @Get('/:id')
+  @UseGuards(AuthGuard())
   getQuestionById(
     @Param('id') id: string,
     @Query() showAnswerDto: ShowAnswerDto,
+    @GetUser() user: User,
   ): Promise<Question> {
-    return this.questionService.getQuestionById(id, showAnswerDto);
+    return this.questionService.getQuestionById(user, id, showAnswerDto);
   }
 
   @Post('/create')

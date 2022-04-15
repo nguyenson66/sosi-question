@@ -5,16 +5,13 @@ import { QuestionService } from 'src/question/question.service';
 
 @Injectable()
 export class AdminService {
-    constructor(
-        private questionService : QuestionService,
-        private answerService : AnswerService,
-    ){}
+  constructor(
+    private questionService: QuestionService,
+    private answerService: AnswerService,
+  ) {}
 
-    questionManagement(searchQuestionDto : SearchQuestionDto){
-        const questions = this.questionService.getAllQuestion(searchQuestionDto);
+  // questionManagement(searchQuestionDto : SearchQuestionDto){
+  //     const questions = this.questionService.getAllQuestion(searchQuestionDto);
 
-
-    }
-
-
+  // }
 }

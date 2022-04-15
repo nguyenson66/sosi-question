@@ -39,13 +39,13 @@ export class AnswerController {
     @Body() answerDto: AnswerDto,
     @Param('id') id: string,
   ): Promise<StatusCode> {
-    console.log(id, answerDto);
     return this.answerService.addAnswer(user, answerDto, id);
   }
 
   @Post('/vote/:id')
   @UseGuards(AuthGuard())
   voteAnswer(@GetUser() user: User, @Param('id') id: string): Promise<Answer> {
+    console.log(user);
     return this.answerService.voteAnswer(user, id);
   }
 

@@ -6,5 +6,12 @@ export const GetUser = createParamDecorator(async function GetUser(
   context: ExecutionContext,
 ): Promise<User> {
   const req = await context.switchToHttp().getRequest();
-  return req.user;
+
+  const user = req.user;
+  if (user) {
+    user.password = undefined;
+    return user;
+  }
+
+  return undefined;
 });

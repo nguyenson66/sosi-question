@@ -32,9 +32,9 @@ export class AnswerService {
 
     if (by) {
       if (by === 'new answer') {
-        order = 'asc';
-      } else if (by === 'oldest answer') {
         order = 'desc';
+      } else if (by === 'oldest answer') {
+        order = 'asc';
       }
       by = 'created_at';
     } else {
@@ -99,6 +99,7 @@ export class AnswerService {
 
   async update(user: User, answerDto: AnswerDto, id: string): Promise<Answer> {
     const { content } = answerDto;
+    const currentDate = moment().format();
 
     const answer = await this.answerModel.findOne({
       _id: id,
@@ -108,6 +109,7 @@ export class AnswerService {
     if (!answer) throw new NotFoundException(`Answer ID : ${id} not found !!!`);
 
     answer.content = content;
+    answer.updated_at = currentDate;
 
     await answer.save();
 

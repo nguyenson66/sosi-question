@@ -17,7 +17,8 @@ import * as moment from 'moment';
 import { StatusCode } from 'src/share/dto/statusCode.dto';
 import { AnswerService } from 'src/answer/answer.service';
 import { ShowAnswerDto } from 'src/answer/dto/show-answer.dto';
-import { Answer } from 'src/answer/schema/answer.schema';
+import { UserService } from 'src/user/user.service';
+import { ObjectId } from 'mongoose';
 
 @Injectable()
 export class QuestionService {
@@ -27,16 +28,22 @@ export class QuestionService {
     private categoryService: CategoryService,
     @Inject(forwardRef(() => AnswerService))
     private answerService: AnswerService,
+
+    private userService: UserService,
   ) {}
 
+  /// GET Method ///
+
   async getAllQuestion(
+    user: User,
     searchQuestionDto: SearchQuestionDto,
   ): Promise<Question[]> {
     let { s, category, order, by, limit, skip } = searchQuestionDto;
+    const interists = user.interists;
 
     if (!s) s = '';
-    let listChar = s.split('');
-    s = listChar.join('.*');
+    // let listChar = s.split('');
+    // s = listChar.join('.*');
 
     if (category && !Array.isArray(category)) category = [category];
 
@@ -56,8 +63,8 @@ export class QuestionService {
       })
       .populate('user', 'username Score avatar')
       .populate('category', 'name')
-      .where(category ? 'category' : '1')
-      .in(category ? category : ['1'])
+      .where(category || interists.length != 0 ? 'category' : '1')
+      .in(category ? category : interists.length !== 0 ? interists : ['1'])
       .skip(skip ? +skip : 0)
       .limit(limit ? +limit : Number.MAX_SAFE_INTEGER)
       .sort([
@@ -111,6 +118,7 @@ export class QuestionService {
   }
 
   async getQuestionById(
+    user: User,
     id: string,
     showAnswerDto: ShowAnswerDto,
   ): Promise<Question> {
@@ -126,6 +134,15 @@ export class QuestionService {
     question.viewed += 1;
     question.save();
 
+    let listCategory: any = question.category.filter(
+      (ele) => !user.interists.includes(ele._id),
+    );
+
+    listCategory = listCategory.map((ele) => ele._id);
+
+    if (listCategory.length != 0)
+      this.userService.addInterist(user, listCategory.concat(user.interists));
+
     const answers = await this.answerService.findByQuestionId(
       id,
       showAnswerDto,
@@ -135,6 +152,8 @@ export class QuestionService {
 
     return question;
   }
+
+  // async getQuestionByCategory(id: string) {}
 
   /// POST Method ///
 
